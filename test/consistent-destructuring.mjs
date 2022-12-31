@@ -210,6 +210,15 @@ test({
 			const {a: b} = foo;
 			console.log(foo.b);
 		`,
+		{
+			options: [{
+				exceptions: ['this.state'],
+			}],
+			code: outdent`
+				const {someMethod} = this;
+				console.log(this.state);
+			`,
+		},
 	],
 	invalid: [
 		invalidTestCase({
