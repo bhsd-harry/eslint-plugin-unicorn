@@ -362,6 +362,7 @@ const create = context => {
 			const problem = {
 				node: node.callee.property,
 				messageId: ERROR_ARRAY_CONCAT,
+				suggest: [],
 			};
 
 			const fixableArguments = getConcatFixableArguments(node.arguments, scope);
@@ -395,22 +396,24 @@ const create = context => {
 				});
 			}
 
-			problem.suggest = suggestions.map(({messageId, isSpreadable, testArgument}) => ({
-				messageId,
-				fix: fixConcat(
-					node,
-					sourceCode,
-					// When apply suggestion, we also merge fixable arguments after the first one
-					[
-						{
-							node: firstArgument,
-							isSpreadable,
-							testArgument,
-						},
-						...fixableArgumentsAfterFirstArgument,
-					],
-				),
-			}));
+			if (context.options[0]?.concat !== 'certain') {
+				problem.suggest = suggestions.map(({messageId, isSpreadable, testArgument}) => ({
+					messageId,
+					fix: fixConcat(
+						node,
+						sourceCode,
+						// When apply suggestion, we also merge fixable arguments after the first one
+						[
+							{
+								node: firstArgument,
+								isSpreadable,
+								testArgument,
+							},
+							...fixableArgumentsAfterFirstArgument,
+						],
+					),
+				}));
+			}
 
 			if (
 				fixableArgumentsAfterFirstArgument.length < restArguments.length
@@ -426,7 +429,7 @@ const create = context => {
 				});
 			}
 
-			return problem;
+			return problem.suggest.length > 0 ? problem : undefined;
 		},
 		[arraySliceCallSelector](node) {
 			if (isNodeMatches(node.callee.object, ignoredSliceCallee)) {
@@ -499,6 +502,13 @@ module.exports = {
 		},
 		fixable: 'code',
 		hasSuggestions: true,
+		schema: [
+			{
+				concat: {
+					enum: ['certain', 'all'],
+				},
+			},
+		],
 		messages,
 	},
 };

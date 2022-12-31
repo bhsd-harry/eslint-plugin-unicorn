@@ -17,7 +17,7 @@ Enforces the use of [the spread operator (`...`)](https://developer.mozilla.org/
 
 - `Array#concat(…)`
 
-	Concat an `Array` with one or more `Array`'s or `Array` elements.
+	Concat an `Array` with one or more `Array`s or `Array` elements.
 
 - `Array#slice()`
 
@@ -96,4 +96,28 @@ call(foo, ...[bar, ...baz]);
 ```js
 const baz = [2];
 call(foo, bar, ...baz);
+```
+
+## Options
+
+Type: `object`
+
+### concat
+
+Type: `boolean`\
+Default: `'all'`
+
+This rule suggests fixes when the arguments of `Array#concat(…)` is unknown between `Array`s or `Array` elements, but you can disable it in these conditions by setting `concat` to `'certain'`.
+
+Example:
+
+```js
+{
+	'unicorn/prefer-spread': [
+		'error',
+		{
+			concat: 'certain'
+		}
+	]
+}
 ```
