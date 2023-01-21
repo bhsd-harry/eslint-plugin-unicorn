@@ -93,11 +93,11 @@ const create = context => ({
 		const methodName = property.name;
 		const patternReplacement = getPatternReplacement(pattern);
 
-		if (methodName === 'replaceAll') {
-			if (!patternReplacement) {
-				return;
-			}
+		if (!patternReplacement) {
+			return;
+		}
 
+		if (methodName === 'replaceAll') {
 			return {
 				node: pattern,
 				messageId: MESSAGE_ID_USE_STRING,
@@ -116,10 +116,6 @@ const create = context => ({
 			/** @param {import('eslint').Rule.RuleFixer} fixer */
 			* fix(fixer) {
 				yield fixer.insertTextAfter(property, 'All');
-
-				if (!patternReplacement) {
-					return;
-				}
 
 				yield fixer.replaceText(pattern, patternReplacement);
 			},
