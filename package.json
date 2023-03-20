@@ -1,6 +1,6 @@
 {
 	"name": "eslint-plugin-unicorn",
-	"version": "45.0.2",
+	"version": "46.0.0",
 	"description": "More than 100 powerful ESLint rules",
 	"license": "MIT",
 	"repository": "sindresorhus/eslint-plugin-unicorn",
@@ -79,7 +79,7 @@
 		"eslint-plugin-eslint-plugin": "^5.0.6",
 		"eslint-plugin-internal-rules": "file:./scripts/internal-rules/",
 		"eslint-remote-tester": "^3.0.0",
-		"eslint-remote-tester-repositories": "^0.0.7",
+		"eslint-remote-tester-repositories": "^1.0.0",
 		"execa": "^6.1.0",
 		"listr": "^0.14.3",
 		"lodash-es": "^4.17.21",
@@ -109,6 +109,9 @@
 		]
 	},
 	"xo": {
+		"extends": [
+			"plugin:internal-rules/all"
+		],
 		"ignores": [
 			".cache-eslint-remote-tester",
 			"eslint-remote-tester-results",
@@ -160,14 +163,6 @@
 					"eslint-plugin/require-meta-has-suggestions": "off",
 					"eslint-plugin/require-meta-schema": "off"
 				}
-			},
-			{
-				"files": [
-					"rules/**/*.js"
-				],
-				"extends": [
-					"plugin:internal-rules/all"
-				]
 			}
 		]
 	},
