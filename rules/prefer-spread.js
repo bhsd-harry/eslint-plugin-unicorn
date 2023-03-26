@@ -13,7 +13,6 @@ const {
 const {isLiteral} = require('./ast/index.js');
 const isMethodNamed = require('./utils/is-method-named.js');
 
-const ERROR_ARRAY_FROM = 'array-from';
 const ERROR_ARRAY_CONCAT = 'array-concat';
 const ERROR_ARRAY_SLICE = 'array-slice';
 const ERROR_ARRAY_TO_SPLICED = 'array-to-spliced';
@@ -24,7 +23,6 @@ const SUGGESTION_CONCAT_TEST_ARGUMENT = 'test-argument';
 const SUGGESTION_CONCAT_SPREAD_ALL_ARGUMENTS = 'spread-all-arguments';
 const SUGGESTION_USE_SPREAD = 'use-spread';
 const messages = {
-	[ERROR_ARRAY_FROM]: 'Prefer the spread operator over `Array.from(…)`.',
 	[ERROR_ARRAY_CONCAT]: 'Prefer the spread operator over `Array#concat(…)`.',
 	[ERROR_ARRAY_SLICE]: 'Prefer the spread operator over `Array#slice()`.',
 	[ERROR_ARRAY_TO_SPLICED]: 'Prefer the spread operator over `Array#toSpliced()`.',
@@ -35,17 +33,6 @@ const messages = {
 	[SUGGESTION_CONCAT_SPREAD_ALL_ARGUMENTS]: 'Spread all unknown arguments`.',
 	[SUGGESTION_USE_SPREAD]: 'Use `...` operator.',
 };
-
-const arrayFromCallSelector = [
-	methodCallSelector({
-		object: 'Array',
-		method: 'from',
-		minimumArguments: 1,
-		maximumArguments: 3,
-	}),
-	// Allow `Array.from({length})`
-	'[arguments.0.type!="ObjectExpression"]',
-].join('');
 
 const arrayConcatCallSelector = methodCallSelector('concat');
 
@@ -245,54 +232,6 @@ function getConcatFixableArguments(argumentsList, scope) {
 	return fixableArguments;
 }
 
-function fixArrayFrom(node, sourceCode) {
-	const [object] = node.arguments;
-
-	function getObjectText() {
-		if (isArrayLiteral(object)) {
-			return sourceCode.getText(object);
-		}
-
-		const [start, end] = getParenthesizedRange(object, sourceCode);
-		let text = sourceCode.text.slice(start, end);
-
-		if (
-			!isParenthesized(object, sourceCode)
-			&& shouldAddParenthesesToSpreadElementArgument(object)
-		) {
-			text = `(${text})`;
-		}
-
-		return `[...${text}]`;
-	}
-
-	function * removeObject(fixer) {
-		yield * replaceNodeOrTokenAndSpacesBefore(object, '', fixer, sourceCode);
-		const commaToken = sourceCode.getTokenAfter(object, isCommaToken);
-		yield * replaceNodeOrTokenAndSpacesBefore(commaToken, '', fixer, sourceCode);
-		yield removeSpacesAfter(commaToken, sourceCode, fixer);
-	}
-
-	return function * (fixer) {
-		// Fixed code always starts with `[`
-		if (needsSemicolon(sourceCode.getTokenBefore(node), sourceCode, '[')) {
-			yield fixer.insertTextBefore(node, ';');
-		}
-
-		const objectText = getObjectText();
-
-		if (node.arguments.length === 1) {
-			yield fixer.replaceText(node, objectText);
-			return;
-		}
-
-		// `Array.from(object, mapFunction, thisArgument)` -> `[...object].map(mapFunction, thisArgument)`
-		yield fixer.replaceText(node.callee.object, objectText);
-		yield fixer.replaceText(node.callee.property, 'map');
-		yield * removeObject(fixer);
-	};
-}
-
 function methodCallToSpread(node, sourceCode) {
 	return function * (fixer) {
 		// Fixed code always starts with `[`
@@ -348,13 +287,6 @@ const create = context => {
 	const sourceCode = context.getSourceCode();
 
 	return {
-		[arrayFromCallSelector](node) {
-			return {
-				node,
-				messageId: ERROR_ARRAY_FROM,
-				fix: fixArrayFrom(node, sourceCode),
-			};
-		},
 		[arrayConcatCallSelector](node) {
 			const {object} = node.callee;
 
@@ -515,7 +447,7 @@ module.exports = {
 	meta: {
 		type: 'suggestion',
 		docs: {
-			description: 'Prefer the spread operator over `Array.from(…)`, `Array#concat(…)`, `Array#{slice,toSpliced}()` and `String#split(\'\')`.',
+			description: 'Prefer the spread operator over `Array#concat(…)`, `Array#{slice,toSpliced}()` and `String#split(\'\')`.',
 		},
 		fixable: 'code',
 		hasSuggestions: true,
